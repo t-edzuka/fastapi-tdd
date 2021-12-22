@@ -3,7 +3,6 @@ from fastapi import FastAPI, Depends
 
 from app.config import get_settings, Settings
 
-
 app = FastAPI()
 
 
@@ -18,7 +17,6 @@ def pong(settings: Settings = Depends(get_settings)):
             'environment': settings.environment,
             'testing': settings.testing,
             }
-
 
 
 if __name__ == '__main__':
