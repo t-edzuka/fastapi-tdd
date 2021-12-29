@@ -1,33 +1,38 @@
+import logging
 import os
 
-import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
+from tortoise import Tortoise, run_async
 from tortoise.contrib.fastapi import register_tortoise
 
-from app.config import get_settings, Settings
+from app.api import ping
+from app.db import init_db
 
-app = FastAPI()
-
-register_tortoise(app,
-                  db_url=os.environ.get('DATABASE_URL'),
-                  modules={'models': ['app.models.tortoise']},
-                  generate_schemas=False,
-                  add_exception_handlers=True,
-                  )
+log = logging.getLogger('uvicorn')
 
 
-@app.get('/')
-def root():
-    return {'root': 'Hello'}
+def create_application() -> FastAPI:
+    application = FastAPI()
+    register_tortoise(application,
+                      db_url=os.environ.get('DATABASE_URL'),
+                      modules={'models': ['app.models.tortoise']},
+                      generate_schemas=False,
+                      add_exception_handlers=True,
+                      )
+    application.include_router(router=ping.router)
+    return application
 
 
-@app.get("/ping")
-def pong(settings: Settings = Depends(get_settings)):
-    return {"ping": "pong!",
-            'environment': settings.environment,
-            'testing': settings.testing,
-            }
+app = create_application()
 
 
-if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+@app.on_event('startup')
+async def startup_event() -> None:
+    log.info('Starting up fastapi...')
+    init_db(app)
+
+
+@app.on_event('shutdown')
+async def shutdown_event() -> None:
+    log.info('Shutting down...')
+
