@@ -5,3 +5,8 @@ tortoise-orm==0.18.0
 aerich
 pytest
 requests
+gunicorn
+pytest-cov==3.0.0
+flake8==4.0.1
+black==21.12b0
+isort==5.10.1

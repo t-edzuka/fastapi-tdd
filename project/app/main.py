@@ -7,32 +7,34 @@ from tortoise.contrib.fastapi import register_tortoise
 from app.api import ping, summaries
 from app.db import init_db
 
-log = logging.getLogger('uvicorn')
+log = logging.getLogger("uvicorn")
 
 
 def create_application() -> FastAPI:
     application = FastAPI()
-    register_tortoise(application,
-                      db_url=os.environ.get('DATABASE_URL'),
-                      modules={'models': ['app.models.tortoise']},
-                      generate_schemas=False,
-                      add_exception_handlers=True,
-                      )
+    register_tortoise(
+        application,
+        db_url=os.environ.get("DATABASE_URL"),
+        modules={"models": ["app.models.tortoise"]},
+        generate_schemas=False,
+        add_exception_handlers=True,
+    )
     application.include_router(router=ping.router)
-    application.include_router(summaries.router, prefix="/summaries", tags=["summaries"])
+    application.include_router(
+        summaries.router, prefix="/summaries", tags=["summaries"]
+    )
     return application
 
 
 app = create_application()
 
 
-@app.on_event('startup')
+@app.on_event("startup")
 async def startup_event() -> None:
-    log.info('Starting up fastapi...')
+    log.info("Starting up fastapi...")
     init_db(app)
 
 
-@app.on_event('shutdown')
+@app.on_event("shutdown")
 async def shutdown_event() -> None:
-    log.info('Shutting down...')
-
+    log.info("Shutting down...")
